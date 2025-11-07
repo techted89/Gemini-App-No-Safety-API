@@ -1,46 +1,45 @@
-name: Android Build (Release)
+name: Kotlin/Gradle CI
 
 on:
-  # Triggers the workflow on push events to the 'main' branch
   push:
-    branches: [ main ]
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
 
 jobs:
   build:
-    # Runs on the latest Ubuntu environment
+    # Use the latest stable Ubuntu runner environment
     runs-on: ubuntu-latest
-
+    
     steps:
-    - name: Checkout Code
-      # Uses the official action to clone your repository code
+    - name: ⬇️ Checkout Repository
+      # Checks out your repository under $GITHUB_WORKSPACE, so the workflow can access it.
       uses: actions/checkout@v4
 
-    - name: Set up Java 17 for Android
-      # Sets up the Java environment required by modern Android Gradle builds
+    - name: ☕ Set up JDK 17
+      # Sets up the Java Development Kit (JDK) required by Gradle.
+      # JDK 17 is the current recommended LTS version for most modern Kotlin/Android projects.
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: 'gradle' # Caches Gradle dependencies to speed up subsequent runs
+        # Caches the Gradle dependencies to speed up subsequent builds
+        cache: 'gradle'
 
-    - name: Grant execute permission to gradlew
-      # Ensures the Gradle wrapper script is executable
+    - name: ⚙️ Grant Execute Permission to gradlew
+      # Ensures the Linux runner can execute the Gradle wrapper script.
       run: chmod +x gradlew
 
-    - name: Run Release Build (assembleRelease)
-      # This command builds the unsigned release APK (app-release-unsigned.apk).
-      # IMPORTANT: We pass the API Key as a Gradle property. You must configure your
-      # Model.kt or BuildConfig to read the key from this property instead of hardcoding it.
-      run: ./gradlew assembleRelease -PgeminiApiKey=${{ secrets.GEMINI_API_KEY }}
+    - name: 🏗️ Run Build (Check, Assemble, and Tests)
+      # Executes the 'build' task which typically includes dependency resolution, 
+      # running checks, compiling Kotlin/Java code, running unit tests, and assembling the app.
+      run: ./gradlew build
 
-    - name: Upload Release APK
-      # Uploads the generated APK file as a workflow artifact for easy download
-      uses: actions/upload-artifact@v4
-      with:
-        name: gemini-chat-app-release
-        path: app/build/outputs/apk/release/Gemini-UnSafe.apk
-        if-no-files-found: error
-
-
+    # --- Optional Steps (Useful for Android Apps) ---
+    # - name: 📦 Upload Artifact (e.g., APK/Bundle)
+    #   uses: actions/upload-artifact@v4
+    #   if: always() # Uploads even if the build failed
+    #   with:
+    #     name: app-release
+    #     path: app/build/outputs/apk/release/app-release-unsigned.apk 
+    #     # Adjust path based on your module and output directory
