@@ -3,6 +3,8 @@ plugins {
     // to resolve 'android { ... }' and 'implementation' calls.
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    // FIX for 'Starting in Kotlin 2.0, the Compose Compiler Gradle plugin is required'
+    id("org.jetbrains.kotlin.plugin.compose") 
 }
 
 android {
