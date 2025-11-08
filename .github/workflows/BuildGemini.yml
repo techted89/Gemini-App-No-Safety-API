@@ -16,27 +16,10 @@ jobs:
       # v4 is the latest, most stable version
       uses: actions/checkout@v4
 
-    - name: 🛡️ Validate Gradle Wrapper
-      # Security best practice: validates the checksum of the gradlew script
-      uses: gradle/wrapper-validation-action@v2
-
-    - name: ☕ Set up Java 17 (Required by Android)
-      uses: actions/setup-java@v4
+    - name: 🏗️ Run Build with Gradle Build Action
+      uses: gradle/gradle-build-action@v2
       with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: 'gradle' # Caches Gradle dependencies and SDK to speed up build
-
-
-    - name: 🔨 Grant execution permission to gradlew
-      run: chmod +x gradlew
-
-    - name: ⚙️ Run Release Build (assembleRelease)
-      # Fixes the "SDK location not found" error by explicitly setting the variable.
-      # Also passes the secure API key.
-      run: |
-        export ANDROID_HOME=$HOME/Android/sdk
-        ./gradlew assembleRelease -PgeminiApiKey=${{ secrets.GEMINI_API_KEY }}
+        arguments: assembleRelease -PgeminiApiKey=${{ secrets.GEMINI_API_KEY }} --refresh-dependencies
 
     - name: ⬆️ Upload Release APK Artifact
       # The app-release-unsigned.apk is the output of the assembleRelease task
@@ -45,27 +28,3 @@ jobs:
         name: gemini-app-release-apk
         path: App/build/outputs/apk/release/app-release-unsigned.apk
         if-no-files-found: error
-
-    - name: 🕵️ List files in checkout directory
-      run: ls -la
-
-    - name: 🤖 Setup Android SDK
-      uses: android-actions/setup-android@v2
-
-    - name: ⚙️ Grant Execute Permission to gradlew
-      # Ensures the Linux runner can execute the Gradle wrapper script.
-      run: chmod +x gradlew
-
-    - name: 🏗️ Run Build (Check, Assemble, and Tests)
-      # Executes the 'build' task which typically includes dependency resolution, 
-      # running checks, compiling Kotlin/Java code, running unit tests, and assembling the app.
-      run: ./gradlew build
-
-    # --- Optional Steps (Useful for Android Apps) ---
-    - name: 📦 Upload Artifact (e.g., APK/Bundle)
-      uses: actions/upload-artifact@v4
-      if: always() # Uploads even if the build failed
-      with:
-        name: app-release
-        path: App/build/outputs/apk/release/app-release-unsigned.apk
-        # Adjust path based on your module and output directory
