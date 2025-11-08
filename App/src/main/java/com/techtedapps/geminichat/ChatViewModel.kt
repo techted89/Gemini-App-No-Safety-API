@@ -14,14 +14,25 @@ import kotlinx.coroutines.launch
  * ViewModel to handle chat logic, state, and API calls.
  */
 class ChatViewModel(
-    private val model: GenerativeModel = Model.generativeModel
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
+    private lateinit var model: GenerativeModel
     private val _uiState = MutableStateFlow(ChatState())
     val uiState: StateFlow<ChatState> = _uiState
 
     // Tracks the current conversation history for context
     private val chatHistory = mutableListOf<Content>()
+
+    init {
+        val apiKey = settingsRepository.getApiKey()
+        val modelName = settingsRepository.getModelName()
+        val temperature = settingsRepository.getTemperature()
+        if (apiKey.isNotEmpty()) {
+            val geminiModel = GeminiModel(apiKey, modelName, temperature)
+            model = geminiModel.generativeModel
+        }
+    }
 
     /**
      * Updates the user's input text as they type.
@@ -36,6 +47,17 @@ class ChatViewModel(
     fun sendMessage() {
         val userMessage = _uiState.value.input.trim()
         if (userMessage.isEmpty()) return
+
+        if (!::model.isInitialized) {
+            _uiState.update {
+                it.copy(
+                    messages = it.messages + Message("API key not set. Please go to settings to set it.", isUser = false),
+                    input = "",
+                    isLoading = false
+                )
+            }
+            return
+        }
 
         // 1. Prepare UI for sending message
         _uiState.update {

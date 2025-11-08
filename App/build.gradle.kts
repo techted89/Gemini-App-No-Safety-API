@@ -18,8 +18,6 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
-        val geminiApiKey = project.properties["geminiApiKey"] ?: "DEBUG_API_KEY_FALLBACK"
-        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
     }
 
     buildTypes {
@@ -52,7 +50,6 @@ android {
 }
 
 dependencies {
-    # AndroidX & Compose
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -61,11 +58,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-
-    # Gemini SDK (Assuming version 1.26.0 as of late 2025)
-    # NOTE: You must include your GEMINI_API_KEY in a local.properties file or Gradle property.
     implementation("com.google.genai:google-genai:1.26.0")
-
-    # ViewModel utilities
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation("androidx.navigation:navigation-compose:2.7.7")
 }
