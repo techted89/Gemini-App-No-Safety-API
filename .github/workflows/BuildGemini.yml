@@ -26,6 +26,12 @@ jobs:
         # Caches the Gradle dependencies to speed up subsequent builds
         cache: 'gradle'
 
+    - name: 🕵️ List files in checkout directory
+      run: ls -la
+
+    - name: 🤖 Setup Android SDK
+      uses: android-actions/setup-android@v2
+
     - name: ⚙️ Grant Execute Permission to gradlew
       # Ensures the Linux runner can execute the Gradle wrapper script.
       run: chmod +x gradlew
