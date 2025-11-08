@@ -16,27 +16,10 @@ jobs:
       # v4 is the latest, most stable version
       uses: actions/checkout@v4
 
-    - name: 🛡️ Validate Gradle Wrapper
-      # Security best practice: validates the checksum of the gradlew script
-      uses: gradle/wrapper-validation-action@v2
-
-    - name: ☕ Set up Java 17 (Required by Android)
-      uses: actions/setup-java@v4
+    - name: 🏗️ Run Build with Gradle Build Action
+      uses: gradle/gradle-build-action@v2
       with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: 'gradle' # Caches Gradle dependencies and SDK to speed up build
-
-
-    - name: 🔨 Grant execution permission to gradlew
-      run: chmod +x gradlew
-
-    - name: ⚙️ Run Release Build (assembleRelease)
-      # Fixes the "SDK location not found" error by explicitly setting the variable.
-      # Also passes the secure API key.
-      run: |
-        export ANDROID_HOME=$HOME/Android/sdk
-        ./gradlew assembleRelease -PgeminiApiKey=${{ secrets.GEMINI_API_KEY }}
+        arguments: assembleRelease -PgeminiApiKey=${{ secrets.GEMINI_API_KEY }} --refresh-dependencies
 
     - name: ⬆️ Upload Release APK Artifact
       # The app-release-unsigned.apk is the output of the assembleRelease task
@@ -68,4 +51,4 @@ jobs:
       with:
         name: app-release
         path: App/build/outputs/apk/release/app-release-unsigned.apk
-        # Adjust path based on your module and output directory
+        # Adjust path based on your module and output directo

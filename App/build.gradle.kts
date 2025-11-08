@@ -1,4 +1,9 @@
 plugins {
+
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
+
     id("com.android.application") version "8.13.1"
     id("org.jetbrains.kotlin.android") version "2.2.21"
 }
@@ -18,11 +23,8 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
-//<<<<<<< feature-gemini-app-enhancements
         val geminiApiKey = project.properties["geminiApiKey"] ?: "YOUR_API_KEY"
         buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
-//=======
-//>>>>>>> main
     }
 
     buildTypes {
@@ -48,7 +50,7 @@ android {
         buildConfig = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "2.2.21"
     }
     packaging {
         resources {
