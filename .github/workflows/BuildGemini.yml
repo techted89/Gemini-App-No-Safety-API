@@ -27,7 +27,7 @@ jobs:
         distribution: 'temurin'
         cache: 'gradle' # Caches Gradle dependencies and SDK to speed up build
 
-//<<<<<<< feature-gemini-app-enhancements
+
     - name: 🔨 Grant execution permission to gradlew
       run: chmod +x gradlew
 
@@ -45,7 +45,7 @@ jobs:
         name: gemini-app-release-apk
         path: App/build/outputs/apk/release/app-release-unsigned.apk
         if-no-files-found: error
-// =======
+
     - name: 🕵️ List files in checkout directory
       run: ls -la
 
@@ -69,4 +69,3 @@ jobs:
         name: app-release
         path: App/build/outputs/apk/release/app-release-unsigned.apk
         # Adjust path based on your module and output directory
-// >>>>>>> main
