@@ -9,5 +9,6 @@ plugins {
     // Updated Kotlin to 2.0.0 for stability (first stable 2.x version).
     // The Compose compiler plugin is now handled implicitly by the Android Gradle Plugin (AGP 8.13.0)
     // based on this Kotlin version.
-    id("org.jetbrains.kotlin.android") version "2.0.0" apply false 
+    id("org.jetbrains.kotlin.android") version "2.0.0" apply false
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.0" apply false
 }
