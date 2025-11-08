@@ -18,13 +18,17 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -44,8 +48,12 @@ import com.techtedapps.geminichat.ui.theme.GeminiChatTheme
 /**
  * Main composable function for the Chat UI.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatScreen(viewModel: ChatViewModel = viewModel()) {
+fun ChatScreen(
+    viewModel: ChatViewModel,
+    onNavigateToSettings: () -> Unit
+) {
     # Collect the UI state as a Compose State
     val state by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
@@ -57,11 +65,26 @@ fun ChatScreen(viewModel: ChatViewModel = viewModel()) {
         }
     }
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Gemini Chat") },
+                actions = {
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Settings"
+                        )
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
             # 1. Message List
             LazyColumn(
                 modifier = Modifier
@@ -203,10 +226,11 @@ fun LoadingIndicator() {
 @Composable
 fun PreviewChatScreen() {
     GeminiChatTheme {
-        Column(Modifier.fillMaxSize()) {
-            MessageBubble(Message("Hello! What can I help you with today?", false))
-            MessageBubble(Message("Can you tell me a story about a space pirate?", true))
-            MessageBubble(Message("The notorious Captain Vira, with a glint of starlight in her eyes...", false))
+        val mockSettingsRepository = object : SettingsRepository(context = androidx.compose.ui.platform.LocalContext.current) {
+            override fun getApiKey(): String = "test_api_key"
+            override fun getModelName(): String = "test_model_name"
         }
+        val mockViewModel = ChatViewModel(mockSettingsRepository)
+        ChatScreen(viewModel = mockViewModel, onNavigateToSettings = {})
     }
 }
