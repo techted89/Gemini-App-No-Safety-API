@@ -59,16 +59,16 @@ def learn_repo_task():
              # Fallback
              for t, m in zip(batch_texts, batch_metadatas):
                  try:
-                     store_embedding(t, m)
-                     stored_count += 1
-                 except Exception:
-                     pass
+                     if store_embedding(t, m):
+                         stored_count += 1
+                     else:
+                         logger.warning(f"Failed to learn file {m.get('source', 'unknown')} in fallback (returned False)")
+                 except Exception as e:
+                     logger.warning(f"Failed to learn file {m.get('source', 'unknown')} in fallback: {e}")
 
         batch_texts[:] = []
         batch_metadatas[:] = []
 
-    texts = []
-    metadatas = []
     for filepath in files:
         # Extra check for patterns not in .gitignore
         if any(fnmatch.fnmatch(filepath, p) for p in ignored_patterns if p != ""):
@@ -87,8 +87,6 @@ def learn_repo_task():
             if len(batch_texts) >= batch_size:
                 process_batch()
 
-            metadatas.append({"source": filepath})
-            texts.append(content)
         except FileNotFoundError:
             logger.error(f"File not found: {filepath}", exc_info=True)
         except PermissionError:
@@ -101,10 +99,6 @@ def learn_repo_task():
     process_batch()
 
     return f"Successfully stored content from {stored_count} files in the 'agent_learning' collection."
-    if texts:
-        store_embeddings(texts, metadatas, collection_name="agent_learning")
-
-    return f"Successfully stored content from {len(texts)} files in the 'agent_learning' collection."
 
 def learn_directory_task(path):
     return learn_directory(path)

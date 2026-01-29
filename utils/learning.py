@@ -74,10 +74,6 @@ def learn_directory(path):
         batch_texts[:] = []
         batch_metadatas[:] = []
 
-    batch_contents = []
-    batch_metadatas = []
-    batch_size = 50
-
     for root, _, files in os.walk(path):
         # Skip ignored directories
         if any(f"/{ignored}/" in root.replace(path, "") for ignored in config.PROJECT_CONTEXT_IGNORE) or any(root.endswith(ignored) for ignored in config.PROJECT_CONTEXT_IGNORE):
@@ -98,28 +94,9 @@ def learn_directory(path):
 
                 if len(batch_texts) >= batch_size:
                     process_batch()
-                batch_contents.append(content)
-                batch_metadatas.append({"source": file_path})
-                print(f"  - Reading {file_path}")
 
             except Exception as e:
                 print(f"  - Error reading {file_path}: {e}")
-                continue
-
-            if len(batch_contents) >= batch_size:
-                if store_embeddings(batch_contents, batch_metadatas, collection_name="agent_learning"):
-                    print(f"  - Stored batch of {len(batch_contents)} files")
-                else:
-                    print(f"  - Error storing batch of {len(batch_contents)} files")
-                batch_contents = []
-                batch_metadatas = []
-
-    # Process remaining items
-    if batch_contents:
-        if store_embeddings(batch_contents, batch_metadatas, collection_name="agent_learning"):
-            print(f"  - Stored final batch of {len(batch_contents)} files")
-        else:
-            print(f"  - Error storing final batch of {len(batch_contents)} files")
 
     process_batch()
 
