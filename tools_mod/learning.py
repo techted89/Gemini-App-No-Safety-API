@@ -67,6 +67,8 @@ def learn_repo_task():
         batch_texts[:] = []
         batch_metadatas[:] = []
 
+    texts = []
+    metadatas = []
     for filepath in files:
         # Extra check for patterns not in .gitignore
         if any(fnmatch.fnmatch(filepath, p) for p in ignored_patterns if p != ""):
@@ -85,6 +87,8 @@ def learn_repo_task():
             if len(batch_texts) >= batch_size:
                 process_batch()
 
+            metadatas.append({"source": filepath})
+            texts.append(content)
         except FileNotFoundError:
             logger.error(f"File not found: {filepath}", exc_info=True)
         except PermissionError:
@@ -97,6 +101,10 @@ def learn_repo_task():
     process_batch()
 
     return f"Successfully stored content from {stored_count} files in the 'agent_learning' collection."
+    if texts:
+        store_embeddings(texts, metadatas, collection_name="agent_learning")
+
+    return f"Successfully stored content from {len(texts)} files in the 'agent_learning' collection."
 
 def learn_directory_task(path):
     return learn_directory(path)
