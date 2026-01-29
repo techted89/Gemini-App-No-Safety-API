@@ -43,8 +43,32 @@ def learn_repo_task():
             for filename in filenames:
                 files.append(os.path.join(root, filename))
 
-    texts = []
-    metadatas = []
+    stored_count = 0
+    batch_texts = []
+    batch_metadatas = []
+    batch_size = 50
+
+    def process_batch():
+        nonlocal batch_texts, batch_metadatas, stored_count
+        if not batch_texts:
+            return
+
+        if store_embeddings(batch_texts, batch_metadatas):
+             stored_count += len(batch_texts)
+        else:
+             # Fallback
+             for t, m in zip(batch_texts, batch_metadatas):
+                 try:
+                     if store_embedding(t, m):
+                         stored_count += 1
+                     else:
+                         logger.warning(f"Failed to learn file {m.get('source', 'unknown')} in fallback (returned False)")
+                 except Exception as e:
+                     logger.warning(f"Failed to learn file {m.get('source', 'unknown')} in fallback: {e}")
+
+        batch_texts[:] = []
+        batch_metadatas[:] = []
+
     for filepath in files:
         # Extra check for patterns not in .gitignore
         if any(fnmatch.fnmatch(filepath, p) for p in ignored_patterns if p != ""):
@@ -55,8 +79,14 @@ def learn_repo_task():
                 content = f.read()
 
             # We use the filepath as 'source' metadata
-            metadatas.append({"source": filepath})
-            texts.append(content)
+            metadata = {"source": filepath}
+
+            batch_texts.append(content)
+            batch_metadatas.append(metadata)
+
+            if len(batch_texts) >= batch_size:
+                process_batch()
+
         except FileNotFoundError:
             logger.error(f"File not found: {filepath}", exc_info=True)
         except PermissionError:
@@ -66,10 +96,9 @@ def learn_repo_task():
         except Exception as e:
             logger.exception(f"An unexpected error occurred while processing {filepath}: {e}")
 
-    if texts:
-        store_embeddings(texts, metadatas, collection_name="agent_learning")
+    process_batch()
 
-    return f"Successfully stored content from {len(texts)} files in the 'agent_learning' collection."
+    return f"Successfully stored content from {stored_count} files in the 'agent_learning' collection."
 
 def learn_directory_task(path):
     return learn_directory(path)

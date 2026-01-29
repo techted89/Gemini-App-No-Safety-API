@@ -50,9 +50,29 @@ def learn_directory(path):
     if not os.path.isdir(path):
         return f"Path is not a valid directory: {path}"
 
-    batch_contents = []
+    batch_texts = []
     batch_metadatas = []
     batch_size = 50
+
+    def process_batch():
+        nonlocal batch_texts, batch_metadatas
+        if not batch_texts:
+            return
+
+        if store_embeddings(batch_texts, batch_metadatas):
+             for m in batch_metadatas:
+                 print(f"  - Learned {m['source']}")
+        else:
+             # Fallback
+             print("  - Batch failed, falling back to single inserts...")
+             for t, m in zip(batch_texts, batch_metadatas):
+                 if store_embedding(t, m):
+                     print(f"  - Learned {m['source']} (fallback)")
+                 else:
+                     print(f"  - Failed to learn {m['source']} (fallback)")
+
+        batch_texts[:] = []
+        batch_metadatas[:] = []
 
     for root, _, files in os.walk(path):
         # Skip ignored directories
@@ -69,27 +89,15 @@ def learn_directory(path):
                 with open(file_path, "r", errors="ignore") as f:
                     content = f.read()
 
-                batch_contents.append(content)
+                batch_texts.append(content)
                 batch_metadatas.append({"source": file_path})
-                print(f"  - Reading {file_path}")
+
+                if len(batch_texts) >= batch_size:
+                    process_batch()
 
             except Exception as e:
                 print(f"  - Error reading {file_path}: {e}")
-                continue
 
-            if len(batch_contents) >= batch_size:
-                if store_embeddings(batch_contents, batch_metadatas, collection_name="agent_learning"):
-                    print(f"  - Stored batch of {len(batch_contents)} files")
-                else:
-                    print(f"  - Error storing batch of {len(batch_contents)} files")
-                batch_contents = []
-                batch_metadatas = []
-
-    # Process remaining items
-    if batch_contents:
-        if store_embeddings(batch_contents, batch_metadatas, collection_name="agent_learning"):
-            print(f"  - Stored final batch of {len(batch_contents)} files")
-        else:
-            print(f"  - Error storing final batch of {len(batch_contents)} files")
+    process_batch()
 
     return f"Finished learning directory: {path}"
