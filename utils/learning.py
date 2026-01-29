@@ -66,8 +66,10 @@ def learn_directory(path):
              # Fallback
              print("  - Batch failed, falling back to single inserts...")
              for t, m in zip(batch_texts, batch_metadatas):
-                 store_embedding(t, m)
-                 print(f"  - Learned {m['source']} (fallback)")
+                 if store_embedding(t, m):
+                     print(f"  - Learned {m['source']} (fallback)")
+                 else:
+                     print(f"  - Failed to learn {m['source']} (fallback)")
 
         batch_texts[:] = []
         batch_metadatas[:] = []
