@@ -20,3 +20,7 @@ def tool_definitions():
             ]
         )
     ]
+
+library = {
+    "display_image": display_image_task
+}

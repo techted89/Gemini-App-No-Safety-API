@@ -77,17 +77,15 @@ def search_and_delete_history(query_text):
 
 def store_embedding(text, metadata, collection_name="agent_learning"):
     try:
-        collection = db_client.get_or_create_collection(collection_name)
-        doc_id = hashlib.md5(text.encode(), usedforsecurity=False).hexdigest()
         collection = get_collection(collection_name)
-        doc_id = hashlib.md5(text.encode()).hexdigest()
+        doc_id = hashlib.md5(text.encode(), usedforsecurity=False).hexdigest()
         collection.upsert(documents=[text], metadatas=[metadata], ids=[doc_id])
         return True
     except Exception: return False
 
 def store_embeddings(texts, metadatas, collection_name="agent_learning"):
     try:
-        collection = db_client.get_or_create_collection(collection_name)
+        collection = get_collection(collection_name)
         ids = [hashlib.md5(t.encode(), usedforsecurity=False).hexdigest() for t in texts]
         collection.upsert(documents=texts, metadatas=metadatas, ids=ids)
         return True
@@ -98,9 +96,6 @@ def store_embeddings(texts, metadatas, collection_name="agent_learning"):
 def query_embeddings(query_text, n_results=10, collection_name="agent_learning"):
     try:
         collection = get_collection(collection_name)
-        return collection.query(query_texts=[query_text], n_results=n_results, include=["documents", "metadatas", "distances"])
-    except Exception: return None
-        collection = db_client.get_or_create_collection(collection_name)
         return collection.query(query_texts=[query_text], n_results=n_results, include=["documents", "metadatas", "distances"])
     except Exception: return None
 
@@ -118,29 +113,17 @@ def update_embedding(doc_id, text=None, metadata=None, collection_name="agent_le
     try:
         collection = get_collection(collection_name)
         collection.update(ids=[doc_id], documents=[text] if text else None, metadatas=[metadata] if metadata else None)
-        collection = db_client.get_or_create_collection(collection_name)
-        collection.update(ids=[doc_id], documents=[text] if text else None, metadatas=[metadata] if metadata else None)
         return True
     except Exception: return False
 
 def get_embedding(doc_id, collection_name="agent_learning"):
-    try: return db_client.get_collection(collection_name).get(ids=[doc_id])
-    except Exception: return None
-    try: return get_collection(collection_name).get(ids=[doc_id])
+    try:
+        return get_collection(collection_name).get(ids=[doc_id])
     except Exception: return None
 
 def get_available_metadata_sources(collection_name="agent_learning"):
     try:
         collection = get_collection(collection_name)
-    try:
-        return db_client.get_collection(collection_name).get(ids=[doc_id])
-    except Exception:
-        return None
-
-
-def get_available_metadata_sources(collection_name="agent_learning"):
-    try:
-        collection = db_client.get_or_create_collection(collection_name)
         results = collection.get(include=["metadatas"])
         return list(set(m.get('source') for m in results['metadatas'] if m.get('source'))) if results['metadatas'] else []
     except Exception: return []
