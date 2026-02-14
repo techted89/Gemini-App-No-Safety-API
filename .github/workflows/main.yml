@@ -1,0 +1,36 @@
+name: AI Review Loop (CodeRabbit/Gemini -> Jules)
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  jules-autofix:
+    # Trigger if the comment is from CodeRabbit OR Gemini Code Assistant
+    # AND it is on a Pull Request
+    if: >
+      github.event.issue.pull_request && 
+      (github.event.comment.user.login == 'coderabbitai[bot]' || github.event.comment.user.login == 'google-gemini-code-assistant[bot]') &&
+      (contains(github.event.comment.body, 'issue') || 
+       contains(github.event.comment.body, 'fix') || 
+       contains(github.event.comment.body, 'suggest'))
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Address AI Review
+        run: |
+          # Use the comment body as the direct instructions for Jules
+          curl 'https://jules.googleapis.com/v1alpha/sessions' \
+          -X POST \
+          -H "Content-Type: application/json" \
+          -H 'X-Goog-Api-Key: ${{ secrets.JULES_API_KEY }}' \
+          -d '{
+            "prompt": "The AI reviewer has provided this feedback: ${{ github.event.comment.body }}. Please apply the suggested fix or refactor to the code.",
+            "sourceContext": {
+              "source": "sources/github/${{ github.repository }}",
+              "githubRepoContext": {
+                "startingBranch": "${{ github.event.issue.pull_request.head.ref }}"
+              }
+            },
+            "automationMode": "AUTO_CREATE_PR",
+            "title": "AI Self-Healing: Fix for Reviewer Feedback"
+          }'
