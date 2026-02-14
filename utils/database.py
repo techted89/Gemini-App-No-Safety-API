@@ -146,7 +146,7 @@ def delete_embeddings(collection_name="agent_learning"):
             del _collections_cache[collection_name]
         try:
             db_client.delete_collection(f"{collection_name}_sources")
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error deleting sources collection for {collection_name}: {e}")
     except Exception as e:
         logger.error(f"Error deleting collection {collection_name}: {e}")
