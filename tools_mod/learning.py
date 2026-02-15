@@ -139,3 +139,9 @@ def tool_definitions():
             ]
         )
     ]
+
+library = {
+    "learn_repo": learn_repo_task,
+    "learn_directory": learn_directory_task,
+    "learn_url": learn_url_task
+}
